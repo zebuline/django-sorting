@@ -17,7 +17,7 @@ sort_directions = {
 
 def anchor(parser, token):
     """
-    Parses a tag that's supposed to be in this format: {% anchor field title %}    
+    Parses a tag that's supposed to be in this format: {% anchor fields title %}    
     """
     bits = [b.strip('"\'') for b in token.split_contents()]
     if len(bits) < 2:
@@ -32,17 +32,19 @@ def anchor(parser, token):
 class SortAnchorNode(template.Node):
     """
     Renders an <a> HTML tag with a link which href attribute 
-    includes the field on which we sort and the direction.
-    and adds an up or down arrow if the field is the one 
+    includes the fields on which we sort and the direction.
+    and adds an up or down arrow if the fields is the one 
     currently being sorted on.
 
     Eg.
         {% anchor name Name %} generates
         <a href="/the/current/path/?sort=name" title="Name">Name</a>
 
+        {% anchor name,title Name %} generates
+        <a href="/the/current/path/?sort=name,title" title="Name">Name</a>
     """
-    def __init__(self, field, title):
-        self.field = field
+    def __init__(self, fields, title):
+        self.fields = fields
         self.title = title
 
     def render(self, context):
@@ -58,7 +60,7 @@ class SortAnchorNode(template.Node):
             del getvars['dir']
         else:
             sortdir = ''
-        if sortby == self.field:
+        if sortby == self.fields:
             getvars['dir'] = sort_directions[sortdir]['inverse']
             icon = sort_directions[sortdir]['icon']
         else:
@@ -72,7 +74,7 @@ class SortAnchorNode(template.Node):
         else:
             title = self.title
 
-        url = '%s?sort=%s%s' % (request.path, self.field, urlappend)
+        url = '%s?sort=%s%s' % (request.path, self.fields, urlappend)
         return '<a href="%s" title="%s">%s</a>' % (url, self.title, title)
 
 
@@ -93,10 +95,10 @@ class SortedDataNode(template.Node):
     def render(self, context):
         key = self.queryset_var.var
         value = self.queryset_var.resolve(context)
-        order_by = context['request'].field
-        if len(order_by) > 1:
+        order_by = context['request'].fields
+        if order_by:
             try:
-                context[key] = value.order_by(order_by)
+                context[key] = value.order_by(*order_by)
             except template.TemplateSyntaxError:
                 if INVALID_FIELD_RAISES_404:
                     raise Http404('Invalid field sorting. If DEBUG were set to ' +

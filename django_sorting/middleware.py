@@ -1,9 +1,10 @@
-def get_field(self):
+def get_fields(self):
     try:
-        field = self.REQUEST['sort']
+        fields = self.REQUEST['sort'].split(',')
     except (KeyError, ValueError, TypeError):
-        field = ''
-    return (self.direction == 'desc' and '-' or '') + field
+        fields = []
+    direction = self.direction == 'desc' and '-' or ''
+    return ['%s%s' % (direction, field) for field in fields]
 
 def get_direction(self):
     try:
@@ -18,5 +19,5 @@ class SortingMiddleware(object):
     portions of the request.
     """
     def process_request(self, request):
-        request.__class__.field = property(get_field)
+        request.__class__.fields = property(get_fields)
         request.__class__.direction = property(get_direction)
