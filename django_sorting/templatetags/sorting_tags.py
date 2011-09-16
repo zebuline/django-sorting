@@ -1,6 +1,7 @@
 from django import template
 from django.http import Http404
 from django.conf import settings
+from django.utils.encoding import force_unicode
 
 register = template.Library()
 
@@ -42,14 +43,19 @@ class SortAnchorNode(template.Node):
 
         {% anchor name,title Name %} generates
         <a href="/the/current/path/?sort=name,title" title="Name">Name</a>
+
+    Titles can be translated:
+        {% anchor name _('Name') %}
+
     """
     def __init__(self, fields, title):
         self.fields = fields
-        self.title = title
+        self.title = template.Variable(title)
 
     def render(self, context):
         request = context['request']
         getvars = request.GET.copy()
+        self.title = force_unicode(self.title.resolve(context))
         if 'sort' in getvars:
             sortby = getvars['sort']
             del getvars['sort']
