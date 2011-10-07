@@ -5,15 +5,15 @@ from django.utils.encoding import force_unicode
 
 register = template.Library()
 
-DEFAULT_SORT_UP = getattr(settings, 'DEFAULT_SORT_UP' , '&uarr;')
-DEFAULT_SORT_DOWN = getattr(settings, 'DEFAULT_SORT_DOWN' , '&darr;')
+DEFAULT_SORT_UP = getattr(settings, 'DEFAULT_SORT_UP' , '&darr;')
+DEFAULT_SORT_DOWN = getattr(settings, 'DEFAULT_SORT_DOWN' , '&uarr;')
 INVALID_FIELD_RAISES_404 = getattr(settings, 
         'SORTING_INVALID_FIELD_RAISES_404' , False)
 
 sort_directions = {
     'asc': {'icon':DEFAULT_SORT_UP, 'inverse': 'desc'}, 
     'desc': {'icon':DEFAULT_SORT_DOWN, 'inverse': 'asc'}, 
-    '': {'icon':DEFAULT_SORT_DOWN, 'inverse': 'asc'}, 
+    '': {'icon':DEFAULT_SORT_UP, 'inverse': 'desc'}, 
 }
 
 def anchor(parser, token):
