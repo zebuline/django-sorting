@@ -55,7 +55,10 @@ class SortAnchorNode(template.Node):
     def render(self, context):
         request = context['request']
         getvars = request.GET.copy()
-        self.title = force_unicode(self.title.resolve(context))
+        try:
+            self.title = force_unicode(self.title.resolve(context))
+        except (template.VariableDoesNotExist, UnicodeEncodeError):
+            self.title = self.title.var
         if 'sort' in getvars:
             sortby = getvars['sort']
             del getvars['sort']
