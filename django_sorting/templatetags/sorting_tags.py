@@ -1,6 +1,7 @@
 from django import template
 from django.http import Http404
 from django.conf import settings
+from django.template.defaultfilters import striptags
 from django.utils.encoding import force_unicode
 
 register = template.Library()
@@ -84,7 +85,7 @@ class SortAnchorNode(template.Node):
             title = self.title
 
         url = '%s?sort=%s%s' % (request.path, self.fields, urlappend)
-        return '<a href="%s" title="%s">%s</a>' % (url, self.title, title)
+        return '<a href="%s" title="%s">%s</a>' % (url, striptags(self.title), title)
 
 
 def autosort(parser, token):
