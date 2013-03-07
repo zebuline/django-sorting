@@ -1,25 +1,27 @@
 from django import template
 from django.http import Http404
 from django.conf import settings
+from django.template.base import TemplateSyntaxError
 from django.template.defaultfilters import striptags
 from django.utils.encoding import force_unicode
 
 register = template.Library()
 
+
 DEFAULT_SORT_UP = getattr(settings, 'DEFAULT_SORT_UP' , '&darr;')
 DEFAULT_SORT_DOWN = getattr(settings, 'DEFAULT_SORT_DOWN' , '&uarr;')
-INVALID_FIELD_RAISES_404 = getattr(settings, 
+INVALID_FIELD_RAISES_404 = getattr(settings,
         'SORTING_INVALID_FIELD_RAISES_404' , False)
 
 sort_directions = {
-    'asc': {'icon':DEFAULT_SORT_UP, 'inverse': 'desc'}, 
-    'desc': {'icon':DEFAULT_SORT_DOWN, 'inverse': 'asc'}, 
-    '': {'icon':DEFAULT_SORT_UP, 'inverse': 'desc'}, 
+    'asc': {'icon':DEFAULT_SORT_UP, 'inverse': 'desc'},
+    'desc': {'icon':DEFAULT_SORT_DOWN, 'inverse': 'asc'},
+    '': {'icon':DEFAULT_SORT_UP, 'inverse': 'desc'},
 }
 
 def anchor(parser, token):
     """
-    Parses a tag that's supposed to be in this format: {% anchor fields title %}    
+    Parses a tag that's supposed to be in this format: {% anchor fields title %}
     """
     bits = [b.strip('"\'') for b in token.split_contents()]
     if len(bits) < 2:
@@ -29,13 +31,13 @@ def anchor(parser, token):
     except IndexError:
         title = bits[1].capitalize()
     return SortAnchorNode(bits[1].strip(), title.strip())
-    
+
 
 class SortAnchorNode(template.Node):
     """
-    Renders an <a> HTML tag with a link which href attribute 
+    Renders an <a> HTML tag with a link which href attribute
     includes the fields on which we sort and the direction.
-    and adds an up or down arrow if the fields is the one 
+    and adds an up or down arrow if the fields is the one
     currently being sorted on.
 
     Eg.
@@ -51,9 +53,10 @@ class SortAnchorNode(template.Node):
     """
     def __init__(self, fields, title):
         self.fields = fields
-        self.title = template.Variable(title)
+        self.title = title
 
     def render(self, context):
+        self.title = template.Variable(self.title)
         request = context['request']
         getvars = request.GET.copy()
         try:
@@ -93,6 +96,7 @@ def autosort(parser, token):
     if len(bits) != 2:
         raise TemplateSyntaxError, "autosort tag takes exactly one argument"
     return SortedDataNode(bits[1])
+
 
 class SortedDataNode(template.Node):
     """
